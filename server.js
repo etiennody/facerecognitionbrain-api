@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 
 const app = express();
 
@@ -26,6 +27,7 @@ const database = {
 }
 
 app.use(express.json());
+app.use(cors());
 
 // Home route
 app.get('/', (req, resp) => {
