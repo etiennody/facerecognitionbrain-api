@@ -27,10 +27,12 @@ const database = {
 
 app.use(express.json());
 
+// Home route
 app.get('/', (req, resp) => {
     resp.send(database.users);
 })
 
+// Sign In route
 app.post('/signin', (req, resp) => {
     if (req.body.email === database.users[0].email &&
         req.body.password === database.users[0].password) {
@@ -40,6 +42,7 @@ app.post('/signin', (req, resp) => {
     }
 })
 
+// Register route
 app.post('/register', (req, resp) => {
     const { username, email, password } = req.body;
     database.users.push({
@@ -53,6 +56,7 @@ app.post('/register', (req, resp) => {
     resp.json(database.users[database.users.length - 1]);
 })
 
+// User profile route
 app.get('/profile/:id', (req, resp) => {
     const { id } = req.params;
     let found = false;
@@ -64,6 +68,22 @@ app.get('/profile/:id', (req, resp) => {
     })
     if (!found) {
         resp.status(400).json('Profile not found...');
+    }
+})
+
+// Image entries route
+app.put('/image', (req, resp) => {
+    const { id } = req.body;
+    let found = false;
+    database.users.forEach((user) => {
+        if (user.id === id) {
+            found = true;
+            user.entries++
+            return resp.json(user.entries);
+        }
+    })
+    if (!found) {
+        resp.status(400).json('User not found...');
     }
 })
 
