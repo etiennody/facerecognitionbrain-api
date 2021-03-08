@@ -28,7 +28,7 @@ const database = {
 app.use(express.json());
 
 app.get('/', (req, resp) => {
-    resp.send('This is working on Express.js server');
+    resp.send(database.users);
 })
 
 app.post('/signin', (req, resp) => {
@@ -51,6 +51,20 @@ app.post('/register', (req, resp) => {
         joined: new Date()
     })
     resp.json(database.users[database.users.length - 1]);
+})
+
+app.get('/profile/:id', (req, resp) => {
+    const { id } = req.params;
+    let found = false;
+    database.users.forEach((user) => {
+        if (user.id === id) {
+            found = true;
+            return resp.json(user);
+        }
+    })
+    if (!found) {
+        resp.status(400).json('Profile not found...');
+    }
 })
 
 app.listen(port, () => {
