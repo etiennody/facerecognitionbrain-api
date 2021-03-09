@@ -13,38 +13,11 @@ const db = knex({
     }
 });
 
-
-// console.log(process.env.REACT_APP_KNEX_HOST);
-// console.log(process.env.REACT_APP_KNEX_USER);
-// console.log(process.env.REACT_APP_KNEX_PASSWORD);
-// console.log(process.env.REACT_APP_KNEX_DB);
-
 db.select('*').from('users');
 
 const app = express();
 
 const port = 3000;
-
-// const database = {
-//     users: [
-//         {
-//             id: '123',
-//             username: 'John',
-//             email: 'john@gmail.com',
-//             password: 'cookies',
-//             entries: 0,
-//             joined: new Date()
-//         },
-//         {
-//             id: '124',
-//             username: 'Sally',
-//             email: 'sally@gmail.com',
-//             password: 'bananas',
-//             entries: 0,
-//             joined: new Date()
-//         }
-//     ]
-// }
 
 app.use(express.json());
 app.use(cors());
@@ -83,16 +56,15 @@ app.post('/register', (req, resp) => {
 // User profile route
 app.get('/profile/:id', (req, resp) => {
     const { id } = req.params;
-    let found = false;
-    database.users.forEach((user) => {
-        if (user.id === id) {
-            found = true;
-            return resp.json(user);
-        }
-    })
-    if (!found) {
-        resp.status(400).json('Profile not found...');
-    }
+    db.select('*').from('users').where({ id })
+        .then(user => {
+            if (user.length) {
+                resp.json(user[0]);
+            } else {
+                resp.status(400).json('Profile not found...');
+            }
+        })
+        .catch(err => resp.status(400).json('Error getting user...'))
 })
 
 // Image entries route
