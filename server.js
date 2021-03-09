@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
 
+const register = require('./controllers/register');
+
 const db = knex({
   client: 'pg',
   connection: {
@@ -49,33 +51,7 @@ app.post('/signin', (req, resp) => {
 })
 
 // Register route
-app.post('/register', (req, resp) => {
-  const { username, email, password } = req.body;
-  const hash = bcrypt.hashSync(password);
-  db.transaction(trx => {
-    trx.insert({
-      hash: hash,
-      email: email
-    })
-      .into('login')
-      .returning('email')
-      .then(loginEmail => {
-        return trx('users')
-          .returning('*')
-          .insert({
-            username: username,
-            email: loginEmail[0],
-            joined: new Date()
-          })
-          .then(user => {
-            resp.json(user[0]);
-          })
-      })
-      .then(trx.commit)
-      .catch(trx.rollback)
-  })
-    .catch(err => resp.status(400).json('Unable to register...'))
-})
+app.post('/register', (req, resp) => { register.handleRegister(req, resp, db, bcrypt) })
 
 // User profile route
 app.get('/profile/:id', (req, resp) => {
