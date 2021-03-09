@@ -5,6 +5,9 @@ const cors = require('cors');
 const knex = require('knex');
 
 const register = require('./controllers/register');
+const signin = require('./controllers/signin');
+const profile = require('./controllers/profile');
+const image = require('./controllers/image');
 
 const db = knex({
   client: 'pg',
@@ -31,54 +34,16 @@ app.get('/', (req, resp) => {
 })
 
 // Sign In route
-app.post('/signin', (req, resp) => {
-  db.select('email', 'hash').from('login')
-    .where('email', '=', req.body.email)
-    .then(data => {
-      const isSignInValid = bcrypt.compareSync(req.body.password, data[0].hash);
-      if (isSignInValid) {
-        return db.select('*').from('users')
-          .where('email', '=', req.body.email)
-          .then(user => {
-            resp.json(user[0])
-          })
-          .catch(err => resp.status(400).json('Sorry, unable to get user...'))
-      } else {
-        resp.status(400).json('Sorry, wrong credentials...')
-      }
-    })
-    .catch(err => resp.status(400).json('Sorry, wrong credentials...'))
-})
+app.post('/signin', signin.handleSignIn(db, bcrypt))
 
 // Register route
-app.post('/register', (req, resp) => { register.handleRegister(req, resp, db, bcrypt) })
+app.post('/register', register.handleRegister(db, bcrypt))
 
 // User profile route
-app.get('/profile/:id', (req, resp) => {
-  const { id } = req.params;
-  db.select('*').from('users').where({ id })
-    .then(user => {
-      if (user.length) {
-        resp.json(user[0]);
-      } else {
-        resp.status(400).json('Profile not found...');
-      }
-    })
-    .catch(err => resp.status(400).json('Error getting user...'))
-})
+app.get('/profile/:id', profile.handleUserProfile(db))
 
 // Image entries route
-app.put('/image', (req, resp) => {
-  const { id } = req.body;
-  db('users').where('id', '=', id)
-    .increment('entries', 1)
-    .returning('entries')
-    .then(entries => {
-      resp.json(entries[0]);
-    })
-    .catch(err => resp.status(400).json('Unable to get entries...'))
-
-})
+app.put('/image', image.handleImage(db))
 
 app.listen(port, () => {
   console.log(`App is running on port ${port}!`);

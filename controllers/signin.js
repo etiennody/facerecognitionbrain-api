@@ -1,4 +1,4 @@
-const handleSignIn = (req, resp, db, bcrypt) => {
+const handleSignIn = (db, bcrypt) => (req, resp) => {
     db.select('email', 'hash').from('login')
         .where('email', '=', req.body.email)
         .then(data => {
