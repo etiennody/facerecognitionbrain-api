@@ -1,30 +1,50 @@
+require('dotenv').config()
 const express = require('express');
 const cors = require('cors');
+const knex = require('knex');
+
+const db = knex({
+    client: 'pg',
+    connection: {
+        host: process.env.REACT_APP_KNEX_HOST,
+        user: process.env.REACT_APP_KNEX_USER,
+        password: process.env.REACT_APP_KNEX_PASSWORD,
+        database: process.env.REACT_APP_KNEX_DB
+    }
+});
+
+
+// console.log(process.env.REACT_APP_KNEX_HOST);
+// console.log(process.env.REACT_APP_KNEX_USER);
+// console.log(process.env.REACT_APP_KNEX_PASSWORD);
+// console.log(process.env.REACT_APP_KNEX_DB);
+
+db.select('*').from('users');
 
 const app = express();
 
 const port = 3000;
 
-const database = {
-    users: [
-        {
-            id: '123',
-            username: 'John',
-            email: 'john@gmail.com',
-            password: 'cookies',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            username: 'Sally',
-            email: 'sally@gmail.com',
-            password: 'bananas',
-            entries: 0,
-            joined: new Date()
-        }
-    ]
-}
+// const database = {
+//     users: [
+//         {
+//             id: '123',
+//             username: 'John',
+//             email: 'john@gmail.com',
+//             password: 'cookies',
+//             entries: 0,
+//             joined: new Date()
+//         },
+//         {
+//             id: '124',
+//             username: 'Sally',
+//             email: 'sally@gmail.com',
+//             password: 'bananas',
+//             entries: 0,
+//             joined: new Date()
+//         }
+//     ]
+// }
 
 app.use(express.json());
 app.use(cors());
@@ -47,14 +67,17 @@ app.post('/signin', (req, resp) => {
 // Register route
 app.post('/register', (req, resp) => {
     const { username, email, password } = req.body;
-    database.users.push({
-        id: '125',
-        username: username,
-        email: email,
-        entries: 0,
-        joined: new Date()
-    })
-    resp.json(database.users[database.users.length - 1]);
+    db('users')
+        .returning('*')
+        .insert({
+            username: username,
+            email: email,
+            joined: new Date()
+        })
+        .then(user => {
+            resp.json(user[0]);
+        })
+        .catch(err => resp.status(400).json('Unable to register...'))
 })
 
 // User profile route
