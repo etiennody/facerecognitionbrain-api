@@ -25,17 +25,27 @@ app.use(cors());
 
 // Home route
 app.get('/', (req, resp) => {
-  resp.send(database.users);
+  resp.send('Success...');
 })
 
 // Sign In route
 app.post('/signin', (req, resp) => {
-  if (req.body.email === database.users[0].email &&
-    req.body.password === database.users[0].password) {
-    resp.json(database.users[0]);
-  } else {
-    resp.status(400).json('Error loggin in...');
-  }
+  db.select('email', 'hash').from('login')
+    .where('email', '=', req.body.email)
+    .then(data => {
+      const isSignInValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isSignInValid) {
+        return db.select('*').from('users')
+          .where('email', '=', req.body.email)
+          .then(user => {
+            resp.json(user[0])
+          })
+          .catch(err => resp.status(400).json('Sorry, unable to get user...'))
+      } else {
+        resp.status(400).json('Sorry, wrong credentials...')
+      }
+    })
+    .catch(err => resp.status(400).json('Sorry, wrong credentials...'))
 })
 
 // Register route
