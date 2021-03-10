@@ -1,8 +1,9 @@
-require('dotenv').config()
 const express = require('express');
-const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+const bcrypt = require('bcrypt-nodejs');
 const knex = require('knex');
+
+require('dotenv').config();
 
 const register = require('./controllers/register');
 const signin = require('./controllers/signin');
@@ -19,14 +20,11 @@ const db = knex({
   }
 });
 
-db.select('*').from('users');
-
 const app = express();
-
 const port = 3000;
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 // Home route
 app.get('/', (req, resp) => {
@@ -43,7 +41,10 @@ app.post('/register', register.handleRegister(db, bcrypt))
 app.get('/profile/:id', profile.handleUserProfile(db))
 
 // Image entries route
-app.put('/image', image.handleImage(db))
+app.put('/image', (req, resp) => { image.handleImage(req, resp, db) })
+
+// Image Url entries route
+app.post('/imageurl', (req, resp) => { image.handleClarifaiApiCall(req, resp) })
 
 app.listen(port, () => {
   console.log(`App is running on port ${port}!`);
