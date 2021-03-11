@@ -23,10 +23,10 @@ const dev = knex({
 const prod = knex({
   client: 'pg',
   connection: {
-    host: process.env.REACT_APP_KNEX_HOST,
-    user: process.env.REACT_APP_KNEX_USER,
-    password: process.env.REACT_APP_KNEX_PASSWORD,
-    database: process.env.REACT_APP_KNEX_DB
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
   }
 });
 
