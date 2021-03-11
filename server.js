@@ -10,7 +10,7 @@ const signin = require('./controllers/signin');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
 
-const db = knex({
+const dev = knex({
   client: 'pg',
   connection: {
     host: process.env.REACT_APP_KNEX_HOST,
@@ -20,8 +20,20 @@ const db = knex({
   }
 });
 
+const prod = knex({
+  client: 'pg',
+  connection: {
+    host: process.env.REACT_APP_KNEX_HOST,
+    user: process.env.REACT_APP_KNEX_USER,
+    password: process.env.REACT_APP_KNEX_PASSWORD,
+    database: process.env.REACT_APP_KNEX_DB
+  }
+});
+
+const db = (process.env.REACT_APP_NODE_ENV === 'production') ? prod : dev;
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
